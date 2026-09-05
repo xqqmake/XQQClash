@@ -1,0 +1,21 @@
+# Node / build output
+node_modules/
+dist/
+_builder-cache/
+_pkg/
+_asar-check/
+_asar-check2/
+
+# Runtime data and logs
+data/
+*.log
+.env
+.env.*
+
+# Local archives and logs
+*.zip
+_build-log.txt
+
+# Temporary extracted/build check directories
+_asar-check/
+_asar-check2/

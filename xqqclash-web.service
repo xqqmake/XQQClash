@@ -1,0 +1,13 @@
+[Unit]
+Description=XQQ Clash Web
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/xqqclash/web
+ExecStart=/usr/bin/node /opt/xqqclash/web/web-server.js
+Restart=always
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
