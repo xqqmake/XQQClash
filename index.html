@@ -889,7 +889,7 @@ function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show')
 
 // ===== 订阅分发服务器 =====
 async function openNetworkSettings(){if(window.electronAPI?.isElectron){toast('ℹ️ 桌面版不管理服务器证书，请使用 Linux 网页版');return}showPrompt('🔐 网络与证书设置',{placeholder:'例如 xqq.vvwi.cn',hint:'输入域名后将优先扫描服务器已有证书；没有匹配证书时可一键申请 Let’s Encrypt'},async(domain)=>{domain=(domain||'').trim();if(!domain)return;try{const s=await fetch('/api/network/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain})}).then(r=>r.json());if(s.candidates?.length){const c=s.candidates[0];if(confirm(`发现证书「${c.domain}」，是否立即使用？`)){const a=await fetch('/api/network/apply-cert',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain,cert:c.cert,key:c.key})}).then(r=>r.json());toast(a.success?'✅ 已应用服务器已有证书':'❌ '+a.error);return}}showPrompt('📜 一键获取 Let’s Encrypt 证书',{placeholder:`admin@${domain}`,hint:'请确认域名已解析到本服务器且80端口可访问'},async(email)=>{const a=await fetch('/api/network/letsencrypt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain,email})}).then(r=>r.json());toast(a.success?'✅ 证书申请成功：'+a.network.httpsUrl:'❌ '+(a.error||'申请失败'))})}catch(e){toast('❌ 网络设置失败：'+e.message)}})}
-function startServer(){
+async function startServer(){
   if(!window.electronAPI||!window.electronAPI.startServer){toast('❌ 需在桌面版中使用');return}
   const port=parseInt($('serverPort').value)||9090;
   const r=await window.electronAPI.startServer(port);
