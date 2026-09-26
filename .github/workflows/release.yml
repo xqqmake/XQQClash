@@ -76,8 +76,16 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          path: artifacts
-          merge-multiple: true
+          name: XQQClash-Windows
+          path: artifacts/windows
+      - uses: actions/download-artifact@v4
+        with:
+          name: XQQClash-Linux
+          path: artifacts/linux
+      - uses: actions/download-artifact@v4
+        with:
+          name: XQQClash-Docker
+          path: artifacts/docker
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
