@@ -1,0 +1,15 @@
+services:
+  xqqclash-web:
+    build: .
+    container_name: xqqclash-web
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - xqqclash-data:/app/data
+    environment:
+      HOST: 0.0.0.0
+      PORT: 9090
+      STATE_FILE: /app/data/state.json
+volumes:
+  xqqclash-data:

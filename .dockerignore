@@ -1,0 +1,10 @@
+node_modules
+.git
+.gitignore
+_builder-cache
+dist
+_userdata
+data
+*_log.txt
+_check.js
+_test-*.js

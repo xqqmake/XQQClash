@@ -19,3 +19,7 @@ _build-log.txt
 # Temporary extracted/build check directories
 _asar-check/
 _asar-check2/
+_userdata/
+_check.js
+_test-*.js
+*_log.txt

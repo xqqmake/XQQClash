@@ -19,7 +19,9 @@
   body[data-theme="light"]{--bg:#eef2f7;--bg2:#ffffff;--bg3:#dbe3ec;--fg:#1e293b;--fg2:#475569;--fg3:#94a3b8;--accent:#2563eb;--accent2:#3b82f6;--selbg:#dbeafe;--inputbg:#ffffff;--green:#059669;--red:#dc2626;--yellow:#d97706;--purple:#7c3aed;--cyan:#0891b2;--pink:#db2777;--orange:#ea580c}
   body[data-theme="light"] .output-area pre{color:#0f766e}
   body[data-theme="light"] .header{background:linear-gradient(135deg,#ffffff,#e8edf4)}
-  body[data-theme="light"] .btn-primary,.body[data-theme="light"] .badge-count{color:#fff}
+  body[data-theme="light"] .btn-primary,body[data-theme="light"] .badge-count{color:#fff}
+  body[data-density="compact"] .proxy-card,body[data-density="compact"] .section-body{padding:8px}body[data-density="compact"] .form-row{gap:6px;margin-bottom:6px}body[data-density="compact"] .proxy-card{margin-bottom:6px}
+  :focus-visible{outline:2px solid var(--accent2);outline-offset:1px}
   *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--fg);min-height:100vh}
   .header{background:linear-gradient(135deg,var(--bg2),var(--bg3));padding:16px 24px;border-bottom:2px solid var(--accent);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
   .header h1{font-size:20px;color:var(--accent2)}.header .subtitle{font-size:12px;color:var(--fg2)}.header-btns{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
@@ -47,7 +49,7 @@
   .output-header{padding:10px 14px;background:var(--bg3);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
   .output-header h3{font-size:14px;color:var(--accent2)}.output-actions{display:flex;gap:6px}
   .output-area{flex:1;position:relative;overflow:hidden}
-  .output-area pre{width:100%;height:100%;margin:0;padding:14px;overflow:auto;background:var(--inputbg);color:#a5f3fc;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px;line-height:1.6;white-space:pre;tab-size:2}
+  .output-area pre,.output-area textarea{width:100%;height:100%;margin:0;padding:14px;overflow:auto;background:var(--inputbg);color:#a5f3fc;font-family:'Cascadia Code','Fira Code','Consolas',monospace;font-size:12px;line-height:1.6;white-space:pre;tab-size:2;border:0;outline:none;resize:none}
   .toast{position:fixed;top:16px;right:16px;background:#10b981;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;z-index:9999;transform:translateX(120%);transition:transform .3s;box-shadow:0 4px 12px rgba(0,0,0,.4)}.toast.show{transform:translateX(0)}
   .protocol-badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700}
   .protocol-badge.socks5{background:#7c3aed20;color:#a78bfa;border:1px solid #7c3aed50}
@@ -101,6 +103,7 @@
       <option value="cyber">🤖 赛博朋克</option>
       <option value="wood">🪵 暖木棕</option>
     </select>
+    <select class="theme-select" id="densitySelect" onchange="setDensity(this.value)" title="界面密度"><option value="normal">标准布局</option><option value="compact">紧凑布局</option></select>
     <button class="btn btn-sm" style="background:#334155;color:#94a3b8" onclick="importYAML()">📥 导入 YAML</button>
     <button class="btn btn-sm" style="background:#334155;color:#94a3b8" onclick="loadBlank()">📄 空白模板</button>
   </div>
@@ -127,6 +130,8 @@
       <div class="section-body">
         <div class="toggle-row"><label class="toggle-switch"><input type="checkbox" id="tunEnable" checked><span class="toggle-slider"></span></label><label>启用 TUN</label></div>
         <div class="form-row"><div class="form-group w-half"><label>协议栈</label><select id="tunStack"><option value="system" selected>系统栈 (system)</option><option value="gvisor">用户态栈 (gvisor)</option><option value="mixed">混合栈 (mixed)</option></select></div><div class="form-group w-half"><label>设备名</label><input type="text" id="tunDevice" value="utun"></div></div>
+        <div class="form-row"><div class="form-group w-half"><label>DNS 劫持地址</label><input type="text" id="tunDnsHijack" value="any:53"></div><div class="form-group w-half"><label>严格路由</label><label class="toggle-switch"><input type="checkbox" id="tunStrictRoute"><span class="toggle-slider"></span></label></div></div>
+        <div class="toggle-row"><label class="toggle-switch"><input type="checkbox" id="tunAutoRoute" checked><span class="toggle-slider"></span></label><label>自动路由</label><label class="toggle-switch"><input type="checkbox" id="tunAutoDetect" checked><span class="toggle-slider"></span></label><label>自动检测网卡</label><label class="toggle-switch"><input type="checkbox" id="tunAutoRedirect" checked><span class="toggle-slider"></span></label><label>自动重定向</label></div>
       </div>
     </div>
     <div class="section"><div class="section-header" onclick="toggleSection(this)"><h3>🔗 代理节点 <span class="badge-count" id="proxyCount">0</span></h3><span class="arrow open">▶</span></div>
@@ -171,6 +176,7 @@
           </div>
         </div>
         <div class="form-row" style="align-items:flex-end">
+          <div class="form-group"><label>搜索节点</label><input id="proxySearch" placeholder="名称 / 地址 / 协议" oninput="renderProxies()"></div>
           <div class="form-group"><label>分组筛选</label><select id="groupFilter" onchange="renderProxies();scheduleUpdate()"><option value="">全部</option><option value="__enabled">已启用</option><option value="__disabled">已停用</option></select></div>
           <div class="form-group"><label>导入到分组</label><select id="importGroup"><option>默认分组</option></select></div>
           <div class="form-group"><label>&nbsp;</label><button class="btn btn-sm" style="background:#334155;color:#94a3b8" onclick="addGroup()">➕ 新增分组</button></div>
@@ -187,8 +193,15 @@
           <button class="btn btn-sm" style="background:#f97316;color:#fff" onclick="addProxy('anytls')">+ AnyTLS</button>
           <button class="btn btn-sm" style="background:#8b5cf6;color:#fff" onclick="addProxy('wireguard')">+ WireGuard</button>
           <button class="btn btn-sm" style="background:#6b7280;color:#fff" onclick="addProxy('socks5')">+ SOCKS5</button>
+          <button class="btn btn-sm" style="background:#0891b2;color:#fff" onclick="testAllLatency()">⏱ 批量测速</button>
+          <button class="btn btn-sm" style="background:#475569;color:#fff" onclick="toggleAllVisible(true)">✅ 启用当前</button>
+          <button class="btn btn-sm" style="background:#475569;color:#fff" onclick="toggleAllVisible(false)">⏸ 停用当前</button>
+          <button class="btn btn-sm btn-danger" onclick="removeAllVisible()">🗑 删除当前</button>
+          <button class="btn btn-sm" style="background:#0f766e;color:#fff" onclick="exportNodesJSON()">📤 导出节点</button>
+          <button class="btn btn-sm" style="background:#0f766e;color:#fff" onclick="importNodesJSON()">📥 导入节点</button>
           <button class="btn btn-sm" style="background:#64748b;color:#fff" onclick="clearProxies()">🗑 清空</button>
         </div>
+        <input type="file" id="nodeFileInput" accept=".json" style="display:none" onchange="handleNodeJSONImport(event)">
         <div id="proxyTotal" style="background:#1e293b;border:1px solid #334155;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#93c5fd;display:none">📊 节点总数：<span id="proxyTotalNum">0</span> 个</div>
         <div id="autoHint" class="auto-hint" style="display:none">💡 未添加自定义规则时，所有流量将自动走第一个代理节点</div>
         <div id="proxyList"></div>
@@ -197,7 +210,7 @@
     <div class="section"><div class="section-header" onclick="toggleSection(this)"><h3>📋 路由规则 <span class="badge-count" id="ruleCount">0</span> <span style="font-size:10px;color:#64748b;font-weight:normal;margin-left:4px">(可选)</span></h3><span class="arrow">▶</span></div>
       <div class="section-body" id="rulesBody">
         <div class="toolbar"><button class="btn btn-sm btn-primary" onclick="addRule()">+ 添加规则</button><button class="btn btn-sm" style="background:#14b8a6;color:#fff" onclick="addCommonRules()">📌 常用规则</button><button class="btn btn-sm" style="background:#3b82f6;color:#fff" onclick="renderRules();scheduleUpdate()">🔄 刷新节点</button><button class="btn btn-sm" style="background:#64748b;color:#fff" onclick="clearRules()">🗑 清空</button></div>
-        <div id="ruleList"></div>
+        <datalist id="lanIpPresets"><option value="192.168.1.0/24"></option><option value="192.168.10.0/24"></option><option value="192.168.20.0/24"></option><option value="192.168.30.0/24"></option><option value="192.168.40.0/24"></option><option value="192.168.50.0/24"></option><option value="192.168.60.0/24"></option><option value="192.168.70.0/24"></option><option value="192.168.80.0/24"></option><option value="192.168.90.0/24"></option><option value="192.168.100.0/24"></option></datalist><div id="ruleList"></div>
       </div>
     </div>
   </div>
@@ -205,7 +218,7 @@
     <div class="output-header"><h3>📄 生成的 YAML <span style="font-size:10px;color:#10b981;font-weight:400">● 实时同步</span></h3>
       <div class="output-actions"><button class="btn btn-sm btn-primary" onclick="copyYAML()">📋 复制</button><button class="btn btn-sm btn-warn" onclick="downloadYAML()">💾 下载</button></div>
     </div>
-    <div class="output-area"><pre id="output"></pre></div>
+    <div class="output-area"><textarea id="output" spellcheck="false" onchange="applyEditedYAML()"></textarea></div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -234,6 +247,7 @@ if(!window.electronAPI){
   window.electronAPI={
     isElectron:false,
     fetchUrl:(url)=>api('/api/fetch',{method:'POST',body:JSON.stringify({url})}),
+    testLatency:async(node)=>({success:false,latency:-1,error:'浏览器模式不支持节点直连测速'}),
     saveState:(data)=>api('/api/state',{method:'PUT',body:JSON.stringify(data)}),
     loadState:()=>api('/api/state'),
     syncConfig:(cfg)=>api('/api/config',{method:'PUT',body:JSON.stringify(cfg)}),
@@ -252,6 +266,7 @@ document.addEventListener('DOMContentLoaded',()=>{restoreState();$('leftPanel').
 let updateTimer=null;function scheduleUpdate(){clearTimeout(updateTimer);updateTimer=setTimeout(()=>{generateYAML();saveState()},100)}
 let uiZoom=1;
 function applyZoom(){try{document.body.style.zoom=uiZoom}catch(e){}}
+function setDensity(value){document.body.setAttribute('data-density',value||'normal');try{localStorage.setItem('xqq-density',value||'normal')}catch(e){}if($('densitySelect'))$('densitySelect').value=value||'normal'}
 document.addEventListener('wheel',(e)=>{if(!e.ctrlKey)return;e.preventDefault();uiZoom=Math.min(2,Math.max(0.6,Math.round((uiZoom+(e.deltaY>0?-0.1:0.1))*10)/10));applyZoom();saveState()},{passive:false});
 function saveState(){let d;try{d={archive:archive.map(p=>{const c={...p};delete c.id;delete c._wifi;delete c._node;return c}),groups,subscriptions:subscriptions.map(s=>({id:s.id,name:s.name,url:s.url,nodes:s.nodes,status:s.status})),theme:$('themeSelect')?$('themeSelect').value:'light',zoom:uiZoom,ports:{port:$('port').value,socksPort:$('socksPort').value,mixedPort:$('mixedPort').value,redirPort:$('redirPort').value,tproxyPort:$('tproxyPort').value,extController:$('extController').value,serverPort:$('serverPort')?$('serverPort').value:'9090'}}}catch(e){return}
 try{localStorage.setItem('xqq-clash-state',JSON.stringify(d))}catch(e){}
@@ -266,17 +281,18 @@ async function restoreState(){
   if(!d){loadBlank();refreshServerStatus();return}
   try{
     // 启动全新空白：界面节点/规则/订阅/分组不恢复；资料库 archive 保留（供订阅服务器使用）
-    proxies=[];rules=[];subscriptions=[];pid=rid=sid=0;groups=['默认分组'];
+    proxies=[];rules=[];subscriptions=[];pid=rid=sid=0;groups=(Array.isArray(d.groups)&&d.groups.length)?d.groups.slice():['默认分组'];
     archive=(d.archive||[]).slice();
     if(d.ports){for(const k in d.ports){const el=$(k);if(el)el.value=d.ports[k]}}
     if(d.zoom){uiZoom=Math.min(2,Math.max(0.6,d.zoom));applyZoom()}
     if(d.theme&&$('themeSelect')){$('themeSelect').value=d.theme;setTheme(d.theme)}
+    try{const density=localStorage.getItem('xqq-density')||'normal';setDensity(density)}catch(e){}
     renderProxies();renderRules();renderSubs();refreshGroupSelects();renderArchivePanel();generateYAML();syncToServer()
   }catch(e){console.warn('恢复失败',e);loadBlank()}
 }
 function loadBlank(){proxies=[];rules=[];subscriptions=[];pid=0;rid=0;sid=0;renderProxies();renderRules();renderSubs();refreshGroupSelects();renderArchivePanel();generateYAML();saveState();toast('📄 已加载空白模板')}
 // ===== 主题 =====
-function setTheme(t){document.body.setAttribute('data-theme',t==='default'?'':t);try{localStorage.setItem('xqq-theme',t)}catch(e){}}
+function setTheme(t){document.body.setAttribute('data-theme',t==='default'?'':t);if($('themeSelect'))$('themeSelect').value=t;try{localStorage.setItem('xqq-theme',t)}catch(e){}}
 // ===== 分组管理 =====
 function refreshGroupSelects(){const gs=groups.slice();const gf=$('groupFilter'),ig=$('importGroup'),sf=$('serverGroupFilter');const cur=gf?gf.value:'';const curIg=ig?ig.value:'';
 const opts=gs.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('');
@@ -306,26 +322,13 @@ function toggleProxyEnabled(id){const p=proxies.find(x=>x.id===id);if(p){p.enabl
 
 // ===== 节点资料库 archive（订阅服务器数据源，文件持久化，启动空白但资料保留） =====
 let archive=[];
-function archiveUpsert(p){if(!p||!p.name)return;const i=archive.findIndex(x=>x.name===p.name);
+function archiveUpsert(p){if(!p||!p.name||!p.server||!p.port)return;const i=archive.findIndex(x=>x.name===p.name);
 const copy={...p};delete copy.id;delete copy._wifi;delete copy._node;copy.enabled=p.enabled!==false;copy.group=p.group||'默认分组';
 if(i>=0)archive[i]={...archive[i],...copy};else archive.push({...copy,addedAt:Date.now()})}
 function archiveRemove(name){archive=archive.filter(x=>x.name!==name)}
 function archiveClear(){archive=[]}
 function archiveGroups(){const s=new Set();archive.forEach(p=>s.add(p.group||'默认分组'));return ['默认分组'].concat([...s].filter(g=>g!=='默认分组'))}
 function buildArchiveYAML(filterGroup){const saved=proxies;proxies=archive.slice();try{return buildYAML(filterGroup)}finally{proxies=saved}}
-function syncToServer(){
-  if(!window.electronAPI||!window.electronAPI.syncConfig)return;
-  let y='',groupYaml={};
-  try{y=buildArchiveYAML('')}catch(e){}
-  const ags=archiveGroups();
-  ags.forEach(g=>{try{groupYaml[g]=buildArchiveYAML(g)}catch(e){}});
-  window.electronAPI.syncConfig({
-    yaml:y,groupYaml,
-    nodes:archive.map(p=>({name:p.name,type:p.type,server:p.server,port:p.port,group:p.group,enabled:p.enabled!==false})),
-    groups:ags,
-    counts:{total:archive.length,enabled:archive.filter(p=>p.enabled!==false).length,disabled:archive.filter(p=>p.enabled===false).length,groups:ags.length}
-  })
-}
 function updateArchiveCount(){const el=$('archiveCount');if(el)el.textContent=archive.length}
 // ===== 资料库面板（仅订阅服务器运行时可用） =====
 let serverRunning=false;
@@ -610,6 +613,7 @@ function clearProxies(){if(confirm('清空当前界面所有节点？(资料库�
 
 function renderProxies(){$('proxyCount').textContent=proxies.length;
 $('proxyTotalNum').textContent=proxies.length;$('proxyTotal').style.display=proxies.length?'block':'none';
+const search=($('proxySearch')?.value||'').trim().toLowerCase();
 const validRules=rules.filter(r=>r.type==='MATCH'||(r.value&&r.value.trim()));$('autoHint').style.display=((proxies.length>0||subscriptions.length>0)&&validRules.length===0)?'flex':'none';
 // 分组过滤
 const gf=$('groupFilter')?$('groupFilter').value:'';
@@ -617,9 +621,10 @@ let shown=proxies;
 if(gf==='__enabled')shown=shown.filter(p=>p.enabled!==false);
 else if(gf==='__disabled')shown=shown.filter(p=>p.enabled===false);
 else if(gf)shown=shown.filter(p=>p.group===gf);
+if(search)shown=shown.filter(p=>[p.name,p.server,p.type,p.group].some(v=>String(v||'').toLowerCase().includes(search)));
 const list=$('proxyList');if(!proxies.length){list.innerHTML='<div class="empty-hint">暂无节点，粘贴上方链接或点击按钮添加</div>';return}
 if(!shown.length){list.innerHTML='<div class="empty-hint">当前筛选下无节点</div>';return}
-list.innerHTML=shown.map((p,i)=>`<div class="proxy-card" style="${p.enabled===false?'opacity:.55':''}"><div class="proxy-title"><span><span style="background:${p.enabled===false?'#64748b':'#3b82f6'};color:#fff;padding:1px 7px;border-radius:10px;font-size:10px;margin-right:6px">${i+1}</span><span class="protocol-badge ${p.type}">${p.type.toUpperCase()}</span> ${esc(p.name)} ${p.enabled===false?'<span style="color:#ef4444;font-size:10px">⏸ 已停用</span>':''}</span><div style="display:flex;gap:4px;align-items:center"><label class="toggle-switch" title="启用/停用"><input type="checkbox" ${p.enabled!==false?'checked':''} onchange="toggleProxyEnabled(${p.id})"><span class="toggle-slider"></span></label><select style="background:#1e293b;border:1px solid #475569;color:#e2e8f0;padding:2px 6px;border-radius:4px;font-size:10px" onchange="setProxyGroup(${p.id},this.value)">${groups.map(g=>`<option value="${esc(g)}" ${(p.group||groups[0])===g?'selected':''}>📁 ${esc(g)}</option>`).join('')}</select><select style="background:#1e293b;border:1px solid #475569;color:#e2e8f0;padding:2px 6px;border-radius:4px;font-size:10px" onchange="changeProxyType(${p.id},this.value)">${ALL_TYPES.map(t=>`<option value="${t}" ${p.type===t?'selected':''}>${t.toUpperCase()}</option>`).join('')}</select><button class="btn btn-danger" onclick="removeProxy(${p.id})">✕</button></div></div><div class="form-row"><div class="form-group w-third"><label>名称</label><input value="${esc(p.name)}" onchange="upd(${p.id},'name',this.value)"></div><div class="form-group w-third"><label>服务器</label><input value="${esc(p.server||'')}" onchange="upd(${p.id},'server',this.value)"></div><div class="form-group w-third"><label>端口</label><input type="number" value="${p.port||''}" onchange="upd(${p.id},'port',parseInt(this.value)||this.value)"></div></div>${proxyFields(p)}</div>`).join('')}
+list.innerHTML=shown.map((p,i)=>`<div class="proxy-card" style="${p.enabled===false?'opacity:.55':''}"><div class="proxy-title"><span><span style="background:${p.enabled===false?'#64748b':'#3b82f6'};color:#fff;padding:1px 7px;border-radius:10px;font-size:10px;margin-right:6px">${i+1}</span><span class="protocol-badge ${p.type}">${p.type.toUpperCase()}</span> ${esc(p.name)} ${p.enabled===false?'<span style="color:#ef4444;font-size:10px">⏸ 已停用</span>':''}</span><div style="display:flex;gap:4px;align-items:center"><label class="toggle-switch" title="启用/停用"><input type="checkbox" ${p.enabled!==false?'checked':''} onchange="toggleProxyEnabled(${p.id})"><span class="toggle-slider"></span></label><select style="background:#1e293b;border:1px solid #475569;color:#e2e8f0;padding:2px 6px;border-radius:4px;font-size:10px" onchange="setProxyGroup(${p.id},this.value)">${groups.map(g=>`<option value="${esc(g)}" ${(p.group||groups[0])===g?'selected':''}>📁 ${esc(g)}</option>`).join('')}</select><select style="background:#1e293b;border:1px solid #475569;color:#e2e8f0;padding:2px 6px;border-radius:4px;font-size:10px" onchange="changeProxyType(${p.id},this.value)">${ALL_TYPES.map(t=>`<option value="${t}" ${p.type===t?'selected':''}>${t.toUpperCase()}</option>`).join('')}</select><button class="btn btn-sm" style="background:#0891b2;color:#fff" onclick="testProxyLatency(${p.id})">⏱</button><span id="latency-${p.id}" style="font-size:10px;color:var(--fg3)">${p.latencyText||''}</span><button class="btn btn-danger" onclick="removeProxy(${p.id})">✕</button></div></div><div class="form-row"><div class="form-group w-third"><label>名称</label><input value="${esc(p.name)}" onchange="upd(${p.id},'name',this.value)"></div><div class="form-group w-third"><label>服务器</label><input value="${esc(p.server||'')}" onchange="upd(${p.id},'server',this.value)"></div><div class="form-group w-third"><label>端口</label><input type="number" value="${p.port||''}" onchange="upd(${p.id},'port',parseInt(this.value)||this.value)"></div></div>${proxyFields(p)}</div>`).join('')}
 
 function tlsRow(p,onChange){
   let h=`<div class="form-row"><div class="form-group w-third"><label>TLS</label><select onchange="${onChange||`upd(${p.id},'tls',this.value==='true')`}"><option value="false" ${!p.tls?'selected':''}>关</option><option value="true" ${p.tls?'selected':''}>开</option></select></div>`;
@@ -667,6 +672,14 @@ else if(T==='wireguard'){h+=`</div><div class="form-row"><div class="form-group 
   h+=`<div class="form-row"><div class="form-group w-half"><label>Pre-Shared Key</label><input value="${esc(p['pre-shared-key']||'')}" onchange="upd(${p.id},'pre-shared-key',this.value)"></div><div class="form-group w-half"><label>MTU</label><input type="number" value="${p.mtu||1408}" onchange="upd(${p.id},'mtu',parseInt(this.value))"></div></div>`}
 else{h+=`</div>`}return h}
 
+function getVisibleProxies(){const gf=$('groupFilter')?.value||'';const search=($('proxySearch')?.value||'').trim().toLowerCase();return proxies.filter(p=>{if(gf==='__enabled'&&p.enabled===false)return false;if(gf==='__disabled'&&p.enabled!==false)return false;if(gf&&!['__enabled','__disabled'].includes(gf)&&p.group!==gf)return false;return !search||[p.name,p.server,p.type,p.group].some(v=>String(v||'').toLowerCase().includes(search))})}
+function toggleAllVisible(enabled){const list=getVisibleProxies();if(!list.length){toast('⚠️ 当前筛选下无节点');return}list.forEach(p=>{p.enabled=enabled;archiveUpsert(p)});renderProxies();saveState();scheduleUpdate();toast(`${enabled?'✅ 已启用':'⏸ 已停用'} ${list.length} 个节点`)}
+function removeAllVisible(){const list=getVisibleProxies();if(!list.length){toast('⚠️ 当前筛选下无节点');return}if(!confirm(`删除当前筛选的 ${list.length} 个节点？`))return;const ids=new Set(list.map(p=>p.id));proxies=proxies.filter(p=>!ids.has(p.id));renderProxies();scheduleUpdate();toast(`🗑 已删除 ${list.length} 个节点`)}
+async function testProxyLatency(id){const p=proxies.find(x=>x.id===id);if(!p)return;const el=$('latency-'+id);if(el)el.textContent='测试中';const r=await (window.electronAPI?.testLatency?window.electronAPI.testLatency(p):Promise.resolve({success:false,latency:-1,error:'不可用'}));p.latency=r.latency;p.latencyText=r.success?`${r.latency} ms`:'失败';if(el){el.textContent=p.latencyText;el.style.color=r.success?(r.latency<300?'var(--green)':r.latency<800?'var(--yellow)':'var(--red)'):'var(--red)'}saveState()}
+async function testAllLatency(){const list=getVisibleProxies();if(!list.length){toast('⚠️ 当前筛选下无节点');return}toast(`⏳ 测试 ${list.length} 个节点`);const q=list.slice();const workers=Array.from({length:4},async()=>{while(q.length){const p=q.shift();await testProxyLatency(p.id)}});await Promise.all(workers);renderProxies();toast('✅ 测速完成')}
+function exportNodesJSON(){const data={version:1,exportedAt:new Date().toISOString(),groups,proxies:proxies.map(p=>{const c={...p};delete c.id;delete c.latency;delete c.latencyText;return c})};const text=JSON.stringify(data,null,2);if(window.electronAPI?.saveFile){window.electronAPI.saveFile(text,'xqq-nodes.json').then(r=>{if(r?.success)toast('📤 节点备份已保存')});}else{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.download='xqq-nodes.json';a.click();toast('📤 节点备份已下载')}}
+function importNodesJSON(){$('nodeFileInput')?.click()}
+function handleNodeJSONImport(e){const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.proxies))throw new Error('缺少 proxies 数组');(d.groups||[]).forEach(g=>{if(g&&!groups.includes(g))groups.push(g)});let n=0;d.proxies.forEach(raw=>{if(!raw||!raw.server||!raw.type)return;const p={...raw,id:++pid,enabled:raw.enabled!==false,group:groups.includes(raw.group)?raw.group:groups[0]};proxies.push(p);archiveUpsert(p);n++});refreshGroupSelects();renderProxies();renderArchivePanel();scheduleUpdate();toast(`✅ 已导入 ${n} 个节点`)}catch(err){toast('❌ 节点备份解析失败: '+err.message)}finally{e.target.value=''}};r.readAsText(f)}
 function upd(id,k,v){const p=proxies.find(x=>x.id===id);if(p){p[k]=v;scheduleUpdate()}}
 function changeProxyType(id,t){const p=proxies.find(x=>x.id===id);if(!p)return;
 ['username','password','uuid','alterId','cipher','network','tls','sni','flow','fingerprint','wsPath','wsHeaders','grpcServiceName','h2Path','h2Host','obfs','obfsPassword','protocol','congestion-controller','udp-relay-mode','private-key','public-key','pre-shared-key','ip','ipv6','mtu','allowed-ips','reality','publicKey','shortId','spiderX','alpn'].forEach(k=>delete p[k]);
@@ -679,8 +692,8 @@ if(t==='anytls'){p.password='';p.sni='';p.tls=true;p.reality=false;p.publicKey='
 if(t==='wireguard'){p['private-key']='';p['public-key']='';p.ip='';p.mtu=1408}renderProxies();scheduleUpdate()}
 
 // ===== 规则管理 =====
-function addRule(){const idx=rules.length+1;const firstNode=proxies[0]?.name||subscriptions[0]?.name||'S1';rules.push({id:++rid,type:'SRC-IP-CIDR',value:'',action:`W${idx}-${firstNode}`,_wifi:`W${idx}`,_node:firstNode});renderRules();scheduleUpdate()}
-function removeRule(id){rules=rules.filter(r=>r.id!==id);renderRules();scheduleUpdate()}
+function addRule(){const firstNode=proxies[0]?.name||subscriptions[0]?.name||'S1';rules.push({id:++rid,type:'SRC-IP-CIDR',value:'',action:firstNode,_wifi:'',_node:firstNode});renderRules();scheduleUpdate()}
+function removeRule(id){if(!rules.some(r=>r.id===id))return;rules=rules.filter(r=>r.id!==id);renderRules();generateYAML();saveState();toast('🗑 已删除规则');}
 function clearRules(){rules=[];rid=0;renderRules();scheduleUpdate()}
 function addCommonRules(){
   const pn=proxies[0]?.name||'S1';const wn='W1';
@@ -707,11 +720,15 @@ const RULE_TYPES=[
 ];
 const RULE_TYPES_MAP=Object.fromEntries(RULE_TYPES.map(t=>[t.v,t]));
 
-function renderRules(){$('ruleCount').textContent=rules.length;const validRules=rules.filter(r=>r.type==='MATCH'||(r.value&&r.value.trim()));$('autoHint').style.display=((proxies.length>0||subscriptions.length>0)&&validRules.length===0)?'flex':'none';
+function moveRule(id,delta){const i=rules.findIndex(r=>r.id===id),j=i+delta;if(i<0||j<0||j>=rules.length)return;[rules[i],rules[j]]=[rules[j],rules[i]];renderRules();scheduleUpdate()}
+function duplicateRule(id){const i=rules.findIndex(r=>r.id===id);if(i<0)return;rules.splice(i+1,0,{...rules[i],id:++rid});renderRules();scheduleUpdate();toast('📋 规则已复制')}
+function renderRules(){$('ruleCount').textContent=rules.length;const validRules=rules.filter(r=>r.enabled!==false&&(r.type==='MATCH'||(r.value&&r.value.trim())));$('autoHint').style.display=((proxies.length>0||subscriptions.length>0)&&validRules.length===0)?'flex':'none';
 const list=$('ruleList');if(!rules.length){list.innerHTML='<div class="empty-hint">暂无自定义规则 — 流量将自动走第一个代理节点</div>';return}
 const proxyNames=proxies.map(p=>p.name);const subNames=subscriptions.map(s=>s.name);const allNames=proxyNames.concat(subNames);list.innerHTML=rules.map(r=>{
   const rt=RULE_TYPES_MAP[r.type]||{l:r.type,ph:'匹配值'};
   const typeOpts=RULE_TYPES.map(t=>`<option value="${t.v}" ${r.type===t.v?'selected':''}>${t.l}</option>`).join('');
+   const ipPresets=['192.168.1.0/24',...Array.from({length:10},(_,i)=>`192.168.${(i+1)*10}.0/24`)];
+   const ipField=r.type==='SRC-IP-CIDR'?`<input class="rule-value" list="lanIpPresets" value="${esc(r.value||'')}" placeholder="选择或填写IP段" onchange="updRule(${r.id},'value',this.value)">`:`<input class="rule-value" value="${esc(r.value)}" placeholder="${(RULE_TYPES_MAP[r.type]||{}).ph||'匹配值'}" onchange="updRule(${r.id},'value',this.value)">`;
   // 拆分 action — 优先用 rule 上缓存的 _wifi/_node
   let wifiPart='',nodePart='',isSpecial=false;
   const act=r.action||'';
@@ -725,16 +742,16 @@ const proxyNames=proxies.map(p=>p.name);const subNames=subscriptions.map(s=>s.na
     if(!matched){wifiPart=act;nodePart=allNames[0]||''}
     // 缓存到 rule 上
     r._wifi=wifiPart;r._node=nodePart
-  }else{wifiPart=`W${rules.indexOf(r)+1}`;nodePart=allNames[0]||''}
+  }else{wifiPart='';nodePart=allNames[0]||''}
   const proxyOpts=proxyNames.map(n=>`<option value="${n}" ${n===nodePart?'selected':''}>${n}</option>`).join('');
   const subOpts=subNames.map(n=>`<option value="${n}" ${n===nodePart?'selected':''}>📡 ${n} (订阅)</option>`).join('');
   const directOpts=`<option value="DIRECT" ${nodePart==='DIRECT'?'selected':''}>🟢 直连</option><option value="REJECT" ${nodePart==='REJECT'?'selected':''}>🔴 拒绝</option>`;
   if(r.type==='MATCH'){
-    return`<div class="rule-item" id="rule-${r.id}"><select class="rule-type" onchange="updRule(${r.id},'type',this.value)">${typeOpts}</select><input class="rule-value" value="" disabled placeholder="无需填写"><select class="rule-action" onchange="updRule(${r.id},'action',this.value)">${directOpts}${proxyOpts}${subOpts}</select><button class="btn btn-danger" onclick="removeRule(${r.id})">✕</button></div>`
+    return`<div class="rule-item" id="rule-${r.id}"><select class="rule-type" onchange="updRule(${r.id},'type',this.value)">${typeOpts}</select><input class="rule-value" value="" disabled placeholder="无需填写"><select class="rule-action" onchange="updRule(${r.id},'action',this.value)">${directOpts}${proxyOpts}${subOpts}</select><button class="btn btn-sm" style="background:#475569;color:#fff" onclick="duplicateRule(${r.id})">⧉</button><button class="btn btn-sm" style="background:#475569;color:#fff" onclick="moveRule(${r.id},-1)">↑</button><button class="btn btn-sm" style="background:#475569;color:#fff" onclick="moveRule(${r.id},1)">↓</button><button class="btn btn-danger" onclick="removeRule(${r.id})">✕</button></div>`
   }
-  return`<div class="rule-item" id="rule-${r.id}"><select class="rule-type" onchange="updRule(${r.id},'type',this.value)">${typeOpts}</select><input class="rule-value" value="${esc(r.value)}" placeholder="${rt.ph}" onchange="updRule(${r.id},'value',this.value)"><input class="rule-wifi" value="${esc(wifiPart)}" placeholder="如: 客厅WiFi" onchange="setWifi(${r.id},this.value)"><span class="rule-dash">-</span><select class="rule-node" onchange="setNode(${r.id},this.value)">${directOpts}${proxyOpts}${subOpts}</select><button class="btn btn-danger" onclick="removeRule(${r.id})">✕</button></div>`}).join('')}
+  return`<div class="rule-item" id="rule-${r.id}"><select class="rule-type" onchange="updRule(${r.id},'type',this.value)">${typeOpts}</select>${ipField}<input class="rule-wifi" value="${esc(wifiPart)}" placeholder="WiFi" onchange="setWifi(${r.id},this.value)"><span class="rule-dash">-</span><select class="rule-node" onchange="setNode(${r.id},this.value)">${directOpts}${proxyOpts}${subOpts}</select><button class="btn btn-sm" style="background:#475569;color:#fff" onclick="duplicateRule(${r.id})">⧉</button><button class="btn btn-sm" style="background:#475569;color:#fff" onclick="moveRule(${r.id},-1)">↑</button><button class="btn btn-sm" style="background:#475569;color:#fff" onclick="moveRule(${r.id},1)">↓</button><button class="btn btn-danger" onclick="removeRule(${r.id})">✕</button></div>`}).join('')}
 
-function setWifi(id,wifi){const r=rules.find(x=>x.id===id);if(!r)return;r._wifi=wifi;const node=r._node||proxies[0]?.name||subscriptions[0]?.name||'';r.action=wifi+'-'+node;scheduleUpdate()}
+function setWifi(id,wifi){const r=rules.find(x=>x.id===id);if(!r)return;r._wifi=wifi.trim();const node=r._node||proxies[0]?.name||subscriptions[0]?.name||'';r.action=r._wifi?(r._wifi+'-'+node):node;scheduleUpdate()}
 function setNode(id,node){const r=rules.find(x=>x.id===id);if(!r)return;r._node=node;if(node==='DIRECT'||node==='REJECT'){r.action=node}else{const wifi=r._wifi||`W${rules.indexOf(r)+1}`;r.action=wifi+'-'+node}scheduleUpdate()}
 
 function updRule(id,k,v){const r=rules.find(x=>x.id===id);if(r){r[k]=v;if(k==='type'&&v==='MATCH')r.value=''}renderRules();scheduleUpdate()}
@@ -752,7 +769,7 @@ function buildYAML(filterGroup){
   const dNS=v('defaultNs').split(',').map(s=>s.trim()).filter(Boolean);const nS=v('nameserver').split(',').map(s=>s.trim()).filter(Boolean);
   y+=`  default-nameserver:\n${dNS.map(n=>`    - ${n}`).join('\n')}\n  nameserver:\n${nS.map(n=>`    - ${n}`).join('\n')}\n  proxy-server-nameserver:\n${dNS.map(n=>`    - ${n}`).join('\n')}\n`;
   if(v('dnsEnhanced')==='fake-ip')y+=`  fake-ip-filter:\n    - "*.lan"\n    - "*.local"\n    - "*.localhost"\n    - "*.home.arpa"\n`;
-  if($('tunEnable').checked)y+=`tun:\n  enable: true\n  stack: ${v('tunStack')}\n  device: ${v('tunDevice')}\n  dns-hijack:\n    - 127.0.0.1:53\n  endpoint-independent-nat: true\n  auto-route: false\n  auto-detect-interface: false\n  auto-redirect: false\n  strict-route: false\n`;
+  if($('tunEnable').checked)y+=`tun:\n  enable: true\n  stack: ${v('tunStack')}\n  device: ${v('tunDevice')}\n  dns-hijack:\n    - ${v('tunDnsHijack')||'any:53'}\n  endpoint-independent-nat: true\n  auto-route: ${$('tunAutoRoute')?.checked!==false}\n  auto-detect-interface: ${$('tunAutoDetect')?.checked!==false}\n  auto-redirect: ${$('tunAutoRedirect')?.checked!==false}\n  strict-route: ${$('tunStrictRoute')?.checked===true}\n`;
 
   const providerGroups=($('providerMode')&&$('providerMode').checked)?genSubs:[];
   if(providerGroups.length)y+=`proxy-providers:\n${providerGroups.map(s=>`  ${s.name}:\n    type: http\n    url: "${s.url}"\n    interval: 3600\n    path: ./providers/${s.name}.yaml\n    health-check:\n      enable: true\n      interval: 600\n      url: http://www.gstatic.com/generate_204\n`).join('')}`;
@@ -798,11 +815,11 @@ function buildYAML(filterGroup){
     // 订阅服务器按组过滤模式：只输出节点池基础配置（不含自定义规则）
     y+=`proxy-groups:\n  - name: PROXY\n    type: select\n    proxies:\n`;genProxies.forEach(p=>{y+=`      - ${p.name}\n`});
     if(providerGroups.length)y+=`    use:\n${providerGroups.map(s=>`      - ${s.name}`).join('\n')}\n`;
-    y+=`rules:\n  - MATCH,PROXY\n`;
+    y+=`rules:\n  # 其余流量默认直连\n  - MATCH,DIRECT\n`;
     return y;
   }
 
-  if(genProxies.length||providerGroups.length){const validRules=rules.filter(r=>r.type==='MATCH'||(r.value&&r.value.trim()));const hasCustomRules=validRules.length>0;
+  if(genProxies.length||providerGroups.length){const validRules=rules.filter(r=>r.enabled!==false&&(r.type==='MATCH'||(r.value&&r.value.trim()))).sort((a,b)=>Number(a.type==='MATCH')-Number(b.type==='MATCH'));const hasCustomRules=validRules.length>0;
   if(hasCustomRules){
     // 从规则中收集所有用到的代理组名，生成对应的 proxy-groups
     const usedGroups=new Map(); // groupName -> nodeName(或订阅名)
@@ -827,32 +844,34 @@ function buildYAML(filterGroup){
       if(subNames.includes(nodeName))y+=`  - name: ${groupName}\n    type: select\n    use:\n      - ${nodeName}\n`;
       else y+=`  - name: ${groupName}\n    type: select\n    proxies: [${nodeName}]\n`;
     });
-    y+=`rules:\n`;validRules.forEach(r=>{y+=r.type==='MATCH'?`  - MATCH,${r.action}\n`:`  - ${r.type},${r.value},${r.action}\n`});
+    y+=`rules:\n`;validRules.filter(r=>r.type!=='MATCH').forEach(r=>{y+=`  - ${r.type},${r.value},${r.action}\n`});y+=`  # 其余流量默认直连\n  - MATCH,DIRECT\n`;
   }
   else{y+=`proxy-groups:\n  - name: PROXY\n    type: select\n    proxies:\n`;genProxies.forEach(p=>{y+=`      - ${p.name}\n`});
     if(providerGroups.length)y+=`    use:\n${providerGroups.map(s=>`      - ${s.name}`).join('\n')}\n`;
-    y+=`rules:\n  - MATCH,PROXY\n`}}
+    y+=`rules:\n  - # 其余流量默认直连\n  - MATCH,DIRECT\n`}}
   return y;
 }
-function generateYAML(){const y=buildYAML();$('output').textContent=y;syncToServer();return y}
+function generateYAML(){const y=buildYAML();$('output').value=y;syncToServer();return y}
+function applyEditedYAML(){syncToServer();toast('✅ 已保留手动编辑的 YAML')}
 function syncToServer(){
   if(!window.electronAPI||!window.electronAPI.syncConfig)return;
-  const groupYaml={};
-  groups.forEach(g=>{try{groupYaml[g]=buildYAML(g)}catch(e){}});
+  let yaml='',groupYaml={};
+  try{yaml=buildArchiveYAML('')}catch(e){yaml=$('output')?.value||''}
+  const ags=archiveGroups();
+  ags.forEach(g=>{try{groupYaml[g]=buildArchiveYAML(g)}catch(e){}});
   window.electronAPI.syncConfig({
-    yaml:$('output').textContent,
-    groupYaml,
-    nodes:proxies.map(p=>({name:p.name,type:p.type,server:p.server,port:p.port,group:p.group,enabled:p.enabled!==false})),
-    groups,
-    counts:{total:proxies.length,enabled:proxies.filter(p=>p.enabled!==false).length,disabled:proxies.filter(p=>p.enabled===false).length,groups:groups.length}
+    yaml,groupYaml,
+    nodes:archive.map(p=>({name:p.name,type:p.type,server:p.server,port:p.port,group:p.group,enabled:p.enabled!==false})),
+    groups:ags,
+    counts:{total:archive.length,enabled:archive.filter(p=>p.enabled!==false).length,disabled:archive.filter(p=>p.enabled===false).length,groups:ags.length}
   })
 }
 
 function v(id){return document.getElementById(id).value}function $(id){return document.getElementById(id)}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function toggleSection(h){h.nextElementSibling.classList.toggle('open');h.querySelector('.arrow').classList.toggle('open')}
-function copyYAML(){const text=$('output').textContent;if(window.electronAPI){window.electronAPI.copyText(text).then(()=>toast('📋 已复制'))}else{navigator.clipboard.writeText(text).then(()=>toast('📋 已复制')).catch(()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('📋 已复制')})}}
-async function downloadYAML(){const text=$('output').textContent;if(window.electronAPI&&typeof window.electronAPI.saveFile==='function'){const r=await window.electronAPI.saveFile(text,'clash-config.yaml');if(r.success)toast('💾 已保存: '+r.path)}else{const name=prompt('请输入文件名:','clash-config.yaml');if(!name)return;const b=new Blob([text],{type:'text/yaml'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name.endsWith('.yaml')?name:name+'.yaml';a.click();URL.revokeObjectURL(a.href);toast('💾 已下载 '+a.download)}}
+function copyYAML(){const text=$('output').value;if(window.electronAPI){window.electronAPI.copyText(text).then(()=>toast('📋 已复制'))}else{navigator.clipboard.writeText(text).then(()=>toast('📋 已复制')).catch(()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('📋 已复制')})}}
+async function downloadYAML(){const text=$('output').value;if(window.electronAPI&&typeof window.electronAPI.saveFile==='function'){const r=await window.electronAPI.saveFile(text,'clash-config.yaml');if(r.success)toast('💾 已保存: '+r.path)}else{const name=prompt('请输入文件名:','clash-config.yaml');if(!name)return;const b=new Blob([text],{type:'text/yaml'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name.endsWith('.yaml')?name:name+'.yaml';a.click();URL.revokeObjectURL(a.href);toast('💾 已下载 '+a.download)}}
 function importYAML(){$('fileInput').click()}
 function handleFileImport(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{parseAndLoad(ev.target.result);toast('📥 导入成功')}catch(e){toast('❌ 解析失败')}};r.readAsText(f);e.target.value=''}
 function parseAndLoad(text){const lines=text.split('\n');proxies=[];rules=[];subscriptions=[];pid=rid=sid=0;let inP=false,inR=false,inSub=false,cur=null,curSub=null;

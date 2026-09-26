@@ -6,7 +6,7 @@ APP_DIR="${XQQ_CLASH_DIR:-/opt/xqqclash/web}"
 DATA_DIR="${XQQ_CLASH_DATA_DIR:-/var/lib/xqq-clash}"
 SERVICE_NAME="xqqclash-web"
 PORT="${XQQ_CLASH_PORT:-9090}"
-REPO_URL="${XQQ_CLASH_REPO:-https://github.com/xqq/xqq-clash.git}"
+REPO_URL="${XQQ_CLASH_REPO:-https://github.com/xqqmake/XQQClash.git}"
 BRANCH="${XQQ_CLASH_BRANCH:-main}"
 
 log(){ printf '\033[1;34m[xqq-clash]\033[0m %s\n' "$*"; }

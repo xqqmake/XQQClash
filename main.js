@@ -32,10 +32,9 @@ ipcMain.handle('save-file', async (event, content, defaultName) => {
   const result = await dialog.showSaveDialog(mainWindow, {
     title: '保存 YAML 配置',
     defaultPath: defaultName || 'clash-config.yaml',
-    filters: [
-      { name: 'YAML 文件', extensions: ['yaml', 'yml'] },
-      { name: '所有文件', extensions: ['*'] }
-    ]
+    filters: defaultName && /\.json$/i.test(defaultName)
+      ? [{ name: 'JSON 文件', extensions: ['json'] }, { name: '所有文件', extensions: ['*'] }]
+      : [{ name: 'YAML 文件', extensions: ['yaml', 'yml'] }, { name: '所有文件', extensions: ['*'] }]
   });
   if (!result.canceled && result.filePath) {
     fs.writeFileSync(result.filePath, content, 'utf-8');
@@ -71,6 +70,47 @@ ipcMain.handle('fetch-url', async (event, url) => {
     });
     req.on('error', (e) => { clearTimeout(timeout); resolve({ success: false, error: String(e.message || e) }); });
     req.end();
+  });
+});
+
+// IPC: 节点地址端口连通性测试（不经过 Clash 核心）
+ipcMain.handle('test-latency', async (event, node) => {
+  const host = String(node && node.server || '').trim();
+  const port = Number(node && node.port);
+  if (!host || !Number.isInteger(port) || port < 1 || port > 65535) {
+    return { success: false, latency: -1, error: '节点地址或端口无效' };
+  }
+  const protocol = node && node.tls === false ? 'http' : 'https';
+  const target = `${protocol}://${host}:${port}/`;
+  return new Promise((resolve) => {
+    const started = Date.now();
+    let req = null;
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(result);
+    };
+    const timer = setTimeout(() => {
+      try { if (req) req.abort(); } catch (_) {}
+      finish({ success: false, latency: -1, error: '连接超时' });
+    }, 5000);
+    try {
+      req = net.request({ method: 'HEAD', url: target });
+      req.setHeader('User-Agent', 'XQQ-Clash-Latency/1.0');
+      req.on('response', (res) => {
+        finish({ success: true, latency: Date.now() - started, statusCode: res.statusCode });
+        try { req.abort(); } catch (_) {}
+      });
+      req.on('error', (err) => {
+        const latency = Date.now() - started;
+        finish({ success: latency < 5000, latency, error: String(err.message || err) });
+      });
+      req.end();
+    } catch (err) {
+      finish({ success: false, latency: -1, error: String(err.message || err) });
+    }
   });
 });
 
