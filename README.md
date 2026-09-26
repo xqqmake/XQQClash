@@ -155,6 +155,90 @@ npm run build:linux
 npm run test:server
 ```
 
+## 安装教程
+
+### Windows 桌面版
+
+在 GitHub Release 下载：
+
+- `XQQClash-1.4.1-Portable.exe`：免安装，下载后直接运行。
+- `XQQ Clash Setup 1.4.1.exe`：安装版，按向导安装后从开始菜单启动。
+
+### Linux 桌面版
+
+在支持图形桌面的 Debian/Ubuntu 上下载 `XQQClash-1.4.1-linux-x86_64.AppImage`：
+
+```bash
+chmod +x XQQClash-1.4.1-linux-x86_64.AppImage
+./XQQClash-1.4.1-linux-x86_64.AppImage
+```
+
+Debian/Ubuntu 也可以安装 deb：
+
+```bash
+sudo apt install ./XQQClash-1.4.1-linux-amd64.deb
+xqq-clash
+```
+
+如果系统不支持 AppImage，下载 `XQQClash-1.4.1-linux-x64.tar.gz`：
+
+```bash
+tar -xzf XQQClash-1.4.1-linux-x64.tar.gz
+cd linux-unpacked
+./xqq-clash --no-sandbox
+```
+
+### Linux 网页版（不使用 Docker）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/xqqmake/XQQClash/main/install.sh | sudo bash
+```
+
+默认访问：
+
+```text
+http://服务器IP:9090/
+```
+
+自定义端口：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/xqqmake/XQQClash/main/install.sh \
+  | sudo env XQQ_CLASH_PORT=9090 bash
+```
+
+服务管理：
+
+```bash
+sudo systemctl status xqqclash-web
+sudo systemctl restart xqqclash-web
+sudo journalctl -u xqqclash-web -f
+```
+
+### Docker 网页版
+
+需要已安装 Docker 和 Docker Compose：
+
+```bash
+git clone https://github.com/xqqmake/XQQClash.git
+cd XQQClash
+docker compose up -d --build
+```
+
+浏览器访问：
+
+```text
+http://服务器IP:9090/
+```
+
+停止服务：
+
+```bash
+docker compose down
+```
+
+节点和配置保存在 Docker volume `xqqclash-data` 中。
+
 ## License
 
 MIT
