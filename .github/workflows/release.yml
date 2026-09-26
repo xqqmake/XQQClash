@@ -42,13 +42,25 @@ jobs:
         shell: bash
         run: npx electron-builder --linux AppImage deb --x64 --publish never
       - name: Package Linux unpacked tarball
-        if: runner.os == 'Linux'
+        if: matrix.platform == 'linux'
         run: tar -czf dist/XQQClash-${{ github.ref_name }}-linux-x64.tar.gz -C dist linux-unpacked
+      - name: Collect Windows release files
+        if: matrix.platform == 'win'
+        shell: bash
+        run: |
+          mkdir -p release
+          find dist -maxdepth 1 -type f -name '*.exe' -exec cp {} release/ \;
+      - name: Collect Linux release files
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: |
+          mkdir -p release
+          find dist -maxdepth 1 -type f \( -name '*.AppImage' -o -name '*.deb' -o -name '*.tar.gz' \) -exec cp {} release/ \;
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: XQQClash-${{ runner.os }}
-          path: dist/*
+          name: XQQClash-${{ matrix.platform }}
+          path: release/*
           if-no-files-found: error
 
   docker:
