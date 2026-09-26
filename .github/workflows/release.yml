@@ -19,12 +19,13 @@ jobs:
     name: Desktop builds
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: windows-latest
-            target: nsis portable
+            platform: win
           - os: ubuntu-latest
-            target: AppImage deb
+            platform: linux
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,9 +33,14 @@ jobs:
           node-version: 18
           cache: npm
       - run: npm ci
-      - name: Build desktop artifacts
+      - name: Build Windows artifacts
+        if: matrix.platform == 'win'
         shell: bash
-        run: npx electron-builder --${{ runner.os == 'Windows' && 'win' || 'linux' }} --x64
+        run: npx electron-builder --win --x64
+      - name: Build Linux artifacts
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: npx electron-builder --linux AppImage deb --x64
       - name: Package Linux unpacked tarball
         if: runner.os == 'Linux'
         run: tar -czf dist/XQQClash-${{ github.ref_name }}-linux-x64.tar.gz -C dist linux-unpacked
